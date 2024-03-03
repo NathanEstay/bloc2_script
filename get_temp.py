@@ -29,6 +29,7 @@ import requests
 import json
 import mysql.connector
 import sys
+from datetime import datetime
 
 
 
@@ -197,18 +198,18 @@ def main():
   lcd.putstr(str(temperature) + " C")
 
   # Récupération d'OW data 
-  req = requests.get('https://api.openweathermap.org/data/2.5/weather?lat=43.2951&lon=-0.370797&appid=6fccd5f02f1598bf9a7c9826cfd7d639')  
-  r = json.loads(req.text)
+  # req = requests.get('https://api.openweathermap.org/data/2.5/weather?lat=43.2951&lon=-0.370797&appid=6fccd5f02f1598bf9a7c9826cfd7d639')  
+  # r = json.loads(req.text)
 
 
-  print("----------------------------------------------------------------------------")
-  # print(req.status_code)
-  print(int(r["main"]["temp"]) - 273 )
-  print(r["main"]["pressure"])
-  print(r["main"]["humidity"])
-  print(r["wind"]["speed"])
-  print(r["weather"][0]["description"])
-  print(r["weather"][0]["icon"])
+  # print("----------------------------------------------------------------------------")
+  # # print(req.status_code)
+  # print(int(r["main"]["temp"]) - 273 )
+  # print(r["main"]["pressure"])
+  # print(r["main"]["humidity"])
+  # print(r["wind"]["speed"])
+  # print(r["weather"][0]["description"])
+  # print(r["weather"][0]["icon"])
 
   # Ajout dans la base de donnée
 
@@ -219,10 +220,14 @@ def main():
     'database':"meteo"
   }
 
+  now = datetime.now()
+  date = now.strftime('%Y-%m-%d %H:%M:%S')
+
   with mysql.connector.connect(**connection_params) as db :
       with db.cursor() as c:
-        c.execute(f"insert into temp (id_ville, temp_int, temp_ext, pression, humidite, vitesse_vent, temps, id_icon) \
-                  values ({sys.argv[1]}, {temperature}, {int(r['main']['temp']) - 273}, {int(r['main']['pressure'])}, {int(r['main']['humidity'])}, {int(r['wind']['speed'])}, '{r['weather'][0]['description']}', '{r['weather'][0]['icon']}')")
+        c.execute("insert into temp (temp_int, date) \
+                  values (%s, %s)", (temperature, date))
+
         db.commit() 
 
 
